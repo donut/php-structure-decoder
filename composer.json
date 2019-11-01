@@ -1,0 +1,24 @@
+{
+    "name": "rightthisminute/php-structure-decoder",
+    "description": "A compositional way to validate and decode generic objects and associative arrays into structured types (classes, etc), modeled after https://github.com/glennsl/bs-json.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Donovan Mueller",
+            "email": "zotobi@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "~7"
+    },
+    "autoload": {
+        "psr-4": {
+            "RightThisMinute\\StructureDecoder\\": "./src"
+        },
+        "files": [
+            "src/base.php",
+            "src/types.php"
+        ]
+    }
+}
