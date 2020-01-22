@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RightThisMinute\StructureDecoder\types;
 
 
+use RightThisMinute\StructureDecoder\exceptions\DecodeError;
 use RightThisMinute\StructureDecoder\exceptions\WrongType;
 
 function string () : callable
@@ -48,7 +49,19 @@ function array_of (callable $decoder) : callable
   return function ($value) use ($decoder) : array
   {
     $array = array_of_mixed()($value);
-    return array_map($decoder, $array);
+    $keys = array_keys($array);
+
+    return array_map
+      ( function($key)use($array, $decoder){
+          $value = $array[$key];
+          try {
+            return $decoder($value);
+          }
+          catch (\Throwable $exn) {
+            throw new DecodeError($value, $exn, (string)$key);
+          }
+        }
+      , $keys );
   };
 }
 
