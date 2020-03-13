@@ -46,14 +46,15 @@ function field ($subject, string $name, callable $decoder)
  * @return mixed|null
  * @throws DecodeError
  */
-function optional_field ($subject, string $name, callable $decoder)
+function optional_field
+  ($subject, string $name, callable $decoder, $default=null)
 {
   try {
     return field($subject, $name, $decoder);
   }
   catch (DecodeError $e) {
     if ($e->getPrevious() instanceof MissingField)
-      return null;
+      return $default ?? null;
 
     throw $e;
   }
