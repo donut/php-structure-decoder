@@ -101,6 +101,18 @@ function int () : callable
 }
 
 
+function mixed () : callable
+{
+  return function ($value)
+  {
+    if (!isset($value))
+      throw new WrongType($value, 'not null');
+
+    return $value;
+  };
+}
+
+
 function object () : callable
 {
   return function ($value) : object
