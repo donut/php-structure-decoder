@@ -41,6 +41,18 @@ function array_of_mixed () : callable
 }
 
 
+function bool () : callable
+{
+  return function ($value) : bool
+  {
+    if (!is_bool($value))
+      throw new WrongType($value, 'boolean');
+
+    return $value;
+  };
+}
+
+
 function dict_of (callable $decoder) : callable
 {
   return function ($value) use ($decoder) : array
