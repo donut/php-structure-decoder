@@ -10,25 +10,21 @@ use RightThisMinute\StructureDecoder\exceptions\WrongType;
 use function Functional\map;
 use function Functional\none;
 
-function string () : callable
+
+function array_of (callable $decoder) : callable
 {
-  return function ($value) : string
+  return function ($value) use ($decoder) : array
   {
-    if (!is_string($value))
-      throw new WrongType($value, 'string');
+    $array = array_of_mixed()($value);
 
-    return $value;
-  };
-}
-
-
-function int () : callable
-{
-  return function ($value) : int {
-    if (!is_int($value))
-      throw new WrongType($value, 'int');
-
-    return $value;
+    return map($array, function($value, $key)use($decoder){
+      try {
+        return $decoder($value);
+      }
+      catch (\Throwable $exn) {
+        throw new DecodeError($value, $exn, (string)$key);
+      }
+    });
   };
 }
 
@@ -45,14 +41,12 @@ function array_of_mixed () : callable
 }
 
 
-
-function array_of (callable $decoder) : callable
+function dict_of (callable $decoder) : callable
 {
   return function ($value) use ($decoder) : array
   {
-    $array = array_of_mixed()($value);
-
-    return map($array, function($value, $key)use($decoder){
+    $dict = dict_of_mixed()($value);
+    return map($dict, function($value, $key)use($decoder){
       try {
         return $decoder($value);
       }
@@ -77,26 +71,20 @@ function dict_of_mixed () : callable
       none($value, function ($_, $key){ return !is_string($key); });
     if (!$is_associative_array)
       throw new WrongType
-        ($value, 'associative array with string keys');
+      ($value, 'associative array with string keys');
 
     return $value;
   };
 }
 
 
-function dict_of (callable $decoder) : callable
+function int () : callable
 {
-  return function ($value) use ($decoder) : array
-  {
-    $dict = dict_of_mixed()($value);
-    return map($dict, function($value, $key)use($decoder){
-      try {
-        return $decoder($value);
-      }
-      catch (\Throwable $exn) {
-        throw new DecodeError($value, $exn, (string)$key);
-      }
-    });
+  return function ($value) : int {
+    if (!is_int($value))
+      throw new WrongType($value, 'int');
+
+    return $value;
   };
 }
 
@@ -107,6 +95,18 @@ function object () : callable
   {
     if (!is_object($value))
       throw new WrongType($value, 'object');
+
+    return $value;
+  };
+}
+
+
+function string () : callable
+{
+  return function ($value) : string
+  {
+    if (!is_string($value))
+      throw new WrongType($value, 'string');
 
     return $value;
   };
