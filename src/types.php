@@ -90,6 +90,20 @@ function dict_of_mixed () : callable
 }
 
 
+function first_of (callable ...$decoders) : callable
+{
+  return function ($value) use ($decoders)
+  {
+    foreach ($decoders as $decoder) {
+      try { return $decoder($value); }
+      catch (\Throwable $exn) {}
+    }
+
+    throw $exn;
+  };
+}
+
+
 function int () : callable
 {
   return function ($value) : int {
