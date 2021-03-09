@@ -53,6 +53,45 @@ function bool () : callable
 }
 
 
+/**
+ * Returns a value decoder that takes a mix of types that may have boolean
+ * values like 1/0 or yes/no and returns the actual boolean equivalent.
+ *
+ * A numeric 1 (int, float, string) evaluates to `true`, and a numeric 0
+ * evaluates to `false`. The following strings evaluate to true: true, t, on,
+ * yes. And these strings evaluate to false: false, f, off, no. Any other
+ * values will throw a `WrongType` exception.
+ *
+ * @return callable
+ */
+function bool_of_mixed () : callable
+{
+  return function ($value) : bool
+  {
+    if (is_bool($value))
+      return $value;
+
+    if ($value === 1 || $value === 1.0 || $value === '1')
+      return true;
+
+    if ($value === 0 || $value === 0.0 || $value === '0')
+      return false;
+
+   if (is_string($value)) {
+     $value = strtolower($value);
+
+     if (in_array($value, ['true', 't', 'on', 'yes'], true))
+       return true;
+
+     if (in_array($value, ['false', 'f', 'off', 'no'], true))
+       return true;
+   }
+
+   throw new WrongType($value, 'boolean-ish', true);
+  };
+}
+
+
 function dict_of (callable $decoder) : callable
 {
   return function ($value) use ($decoder) : array
