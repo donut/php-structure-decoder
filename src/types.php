@@ -154,6 +154,36 @@ function int () : callable
 }
 
 
+/**
+ * Returned decoder expects a string with an integer value. White space and
+ * left padded zeroes are stripped when testing and converting to int.
+ *
+ * @return callable
+ */
+function int_of_string () : callable
+{
+  return function ($value) : int
+  {
+    if (!is_string($value))
+      throw new WrongType($value, 'int as string');
+
+    if (!is_numeric($value))
+      throw new WrongType
+        ($value, 'int as string', true);
+
+    $value = trim($value);
+    $value = ltrim($value, '0');
+    $int = (int)$value;
+
+    if ("$int" !== $value)
+      throw new WrongType
+        ($value, 'int as string', true);
+
+    return $int;
+  };
+}
+
+
 function mixed () : callable
 {
   return function ($value)
