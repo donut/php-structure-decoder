@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "php": "~7",
+        "php": "8.1.x",
         "lstrojny/functional-php": "^1.11"
     },
     "autoload": {

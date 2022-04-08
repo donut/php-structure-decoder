@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace RightThisMinute\StructureDecoder\exceptions;
 
 
-use Throwable;
+use JetBrains\PhpStorm\Pure;
 
 abstract class ValueError extends StructureDecoderError
 {
 
-  /** @var mixed */
-  private $value;
+  private mixed $value;
 
-  /** @var string */
-  private $reason;
+  private string $reason;
 
-  public function __construct ($value, string $reason)
+  #[Pure]
+  public function __construct (mixed $value, string $reason)
   {
     $message = "Failed decoding value: $reason";
     parent::__construct($message);
@@ -24,9 +23,7 @@ abstract class ValueError extends StructureDecoderError
     $this->reason = $reason;
   }
 
-  /** @return mixed */
-  public function getValue () { return $this->value; }
+  public function getValue () : mixed { return $this->value; }
 
-  /** @return string */
   public function getReason () : string { return $this->reason; }
 }
