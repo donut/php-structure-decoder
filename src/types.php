@@ -273,3 +273,27 @@ function string (bool $allow_empty=true, ?int $max_length=null) : callable
     return $value;
   };
 }
+
+
+/**
+ * Returns a value decoder that expects a datetime string that can be parsed
+ * by PHP's strtotime().
+ *
+ * @return callable
+ */
+function timestamp_of_datetime_string () : callable
+{
+  return function ($value) : int
+  {
+    $string = string(allow_empty: false)($value);
+    $timestamp = strtotime($string);
+
+    if ($timestamp === false)
+      throw new WrongType
+        ( $value
+        , 'datetime string parseable by strtotime()'
+        , true );
+
+    return $timestamp;
+  };
+}
