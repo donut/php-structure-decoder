@@ -6,6 +6,7 @@ namespace RightThisMinute\StructureDecoder;
 
 
 use RightThisMinute\StructureDecoder\exceptions\DecodeError;
+use RightThisMinute\StructureDecoder\exceptions\EmptyValue;
 use RightThisMinute\StructureDecoder\exceptions\MissingField;
 use RightThisMinute\StructureDecoder\exceptions\UnsupportedStructure;
 
@@ -53,7 +54,8 @@ function optional_field
     return field($subject, $name, $decoder);
   }
   catch (DecodeError $e) {
-    if ($e->getPrevious() instanceof MissingField)
+    $prev = $e->getPrevious();
+    if ($prev instanceof MissingField || $prev instanceof EmptyValue)
       return $default ?? null;
 
     throw $e;

@@ -5,17 +5,21 @@ declare(strict_types=1);
 namespace RightThisMinute\StructureDecoder\types;
 
 
+use RightThisMinute\StructureDecoder\exceptions\BrokenConstraint;
 use RightThisMinute\StructureDecoder\exceptions\DecodeError;
+use RightThisMinute\StructureDecoder\exceptions\EmptyValue;
 use RightThisMinute\StructureDecoder\exceptions\WrongType;
+use Traversable;
+
 use function Functional\map;
 use function Functional\none;
 
 
-function array_of (callable $decoder) : callable
+function array_of (callable $decoder, bool $allow_empty=true) : callable
 {
-  return function ($value) use ($decoder) : array
+  return function ($value) use ($decoder, $allow_empty) : array|Traversable
   {
-    $array = array_of_mixed()($value);
+    $array = array_of_mixed(allow_empty: $allow_empty)($value);
 
     return map($array, function($value, $key)use($decoder){
       try {
@@ -29,12 +33,15 @@ function array_of (callable $decoder) : callable
 }
 
 
-function array_of_mixed () : callable
+function array_of_mixed (bool $allow_empty=true) : callable
 {
-  return function ($value) : array
+  return function ($value) use ($allow_empty) : array|Traversable
   {
     if (!is_array($value))
       throw new WrongType($value, 'array');
+
+    if (!$allow_empty && count($value) === 0)
+      throw new EmptyValue($value, 'has length of zero');
 
     return $value;
   };
@@ -208,12 +215,19 @@ function object () : callable
 }
 
 
-function string () : callable
+function string (bool $allow_empty=true, ?int $max_length=null) : callable
 {
-  return function ($value) : string
+  return function ($value) use ($allow_empty, $max_length) : string
   {
     if (!is_string($value))
       throw new WrongType($value, 'string');
+
+    if (!$allow_empty && strlen($value) === 0)
+      throw new EmptyValue($value, 'has length of zero');
+
+    if (isset($max_length) && strlen($value) > $max_length)
+      throw new BrokenConstraint
+        ($value, "length must not exceed $max_length");
 
     return $value;
   };
