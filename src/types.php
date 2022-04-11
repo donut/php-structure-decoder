@@ -50,6 +50,41 @@ function array_of_mixed (bool $allow_empty=true) : callable
 }
 
 
+/**
+ * Returns a value decoder for a string of values separated by $delimiter. Each
+ * value will then be decoded by $decoder. Note that $decoder should expect
+ * string input.
+ *
+ * @param string        $delimiter
+ *   What each item in the value is expected to be delimited by.
+ * @param callable|null $decoder
+ *   A decoder to apply to each item in the value.
+ *
+ * @return callable
+ */
+function array_from_delimited_string
+  (string $delimiter, callable $decoder=null)
+  : callable
+{
+  return function ($value) use ($delimiter, $decoder) : array
+  {
+    $string = string()($value);
+    $decoder = $decoder ?? string();
+
+    $array = explode($delimiter, $string);
+
+    return map($array, function($value, $key)use($decoder){
+      try {
+        return $decoder($value);
+      }
+      catch (Throwable $exn) {
+        throw new DecodeError($value, $exn, (string)$key);
+      }
+    });
+  };
+}
+
+
 function bool () : callable
 {
   return function ($value) : bool
