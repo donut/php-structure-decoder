@@ -182,7 +182,8 @@ function int_of_string () : callable
         ($value, 'int as string', true);
 
     $value = trim($value);
-    $value = ltrim($value, '0');
+    # Remove all left padding 0s. If the number is only 0s, then leave one.
+    $value = preg_replace('/^0+(?=0$|[1-9])/', '', $value);
     $int = (int)$value;
 
     if ("$int" !== $value)
