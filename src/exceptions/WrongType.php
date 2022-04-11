@@ -30,6 +30,6 @@ class WrongType extends ValueError
       $got = "$got: $value";
 
     parent::__construct($value,
-      "Expected type [$expected_type] but got [$got].");
+      "expected type [$expected_type] but got [$got]");
   }
 }

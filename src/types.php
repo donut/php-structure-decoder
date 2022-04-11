@@ -9,6 +9,8 @@ use RightThisMinute\StructureDecoder\exceptions\BrokenConstraint;
 use RightThisMinute\StructureDecoder\exceptions\DecodeError;
 use RightThisMinute\StructureDecoder\exceptions\EmptyValue;
 use RightThisMinute\StructureDecoder\exceptions\WrongType;
+use Throwable;
+
 use Traversable;
 
 use function Functional\map;
@@ -25,7 +27,7 @@ function array_of (callable $decoder, bool $allow_empty=true) : callable
       try {
         return $decoder($value);
       }
-      catch (\Throwable $exn) {
+      catch (Throwable $exn) {
         throw new DecodeError($value, $exn, (string)$key);
       }
     });
@@ -37,8 +39,8 @@ function array_of_mixed (bool $allow_empty=true) : callable
 {
   return function ($value) use ($allow_empty) : array|Traversable
   {
-    if (!is_array($value))
-      throw new WrongType($value, 'array');
+    if (!is_array($value) && !($value instanceof Traversable))
+      throw new WrongType($value, 'array|Traversable');
 
     if (!$allow_empty && count($value) === 0)
       throw new EmptyValue($value, 'has length of zero');
@@ -108,7 +110,7 @@ function dict_of (callable $decoder) : callable
       try {
         return $decoder($value);
       }
-      catch (\Throwable $exn) {
+      catch (Throwable $exn) {
         throw new DecodeError($value, $exn, (string)$key);
       }
     });
@@ -129,7 +131,7 @@ function dict_of_mixed () : callable
       none($value, function ($_, $key){ return !is_string($key); });
     if (!$is_associative_array)
       throw new WrongType
-      ($value, 'associative array with string keys');
+        ($value, 'associative array with string keys');
 
     return $value;
   };
@@ -142,7 +144,7 @@ function first_of (callable ...$decoders) : callable
   {
     foreach ($decoders as $decoder) {
       try { return $decoder($value); }
-      catch (\Throwable $exn) {}
+      catch (Throwable $exn) {}
     }
 
     throw $exn;
