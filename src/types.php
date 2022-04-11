@@ -174,6 +174,9 @@ function int_of_string () : callable
     if (!is_string($value))
       throw new WrongType($value, 'int as string');
 
+    if (strlen($value) === 0)
+      throw new EmptyValue($value, 'has length of zero');
+
     if (!is_numeric($value))
       throw new WrongType
         ($value, 'int as string', true);
