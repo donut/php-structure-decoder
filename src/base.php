@@ -6,10 +6,13 @@ namespace RightThisMinute\StructureDecoder;
 
 
 use RightThisMinute\StructureDecoder\exceptions\DecodeError;
+use RightThisMinute\StructureDecoder\exceptions\DuplicateField;
 use RightThisMinute\StructureDecoder\exceptions\EmptyValue;
 use RightThisMinute\StructureDecoder\exceptions\MissingField;
 use RightThisMinute\StructureDecoder\exceptions\UnsupportedStructure;
 use Throwable;
+
+use function Functional\reduce_left;
 
 
 /**
@@ -83,4 +86,60 @@ function optional_field
 
     throw $e;
   }
+}
+
+
+/**
+ * Checks each field in subject as defined in $fields, not stopping if one
+ * or more checks returns/throws an error.
+ *
+ * When using `field()` and `field_optional()`, if one field throws an error,
+ * none of the fields after that one are decoded. This is good when consuming
+ * values from a source with a defined structure like an API or database, but
+ * is less helpful when getting values from users like form submissions. When
+ * a user submits a form, you want to let them know of all problems at once
+ * instead of one at a time.
+ *
+ * This function is meant for situations where all errors should be reported
+ * instead of one-at-a-time.
+ *
+ * @param array<string,mixed>|object $subject
+ * @param Field                      ...$fields
+ *   List of fields to check for and decode on $subject.
+ *
+ * @return array<string,Value>
+ *   Keys are the names of fields as defined in their respective Field
+ *   definition in $fields. The value of each entry is a Value instance. Be
+ *   sure to check the Value::error property before trusting that the value is
+ *   what was expected.
+ *
+ * @throws DuplicateField
+ *   When $fields contains multiple definitions with the same Field::name
+ *   value.
+ */
+function field_group (array|object $subject, Field ...$fields) : array
+{
+  return reduce_left
+    ( $fields
+    , function(Field $field, $_, $__, $values) use ($subject){
+      if (isset($values[$field->name]))
+        throw new DuplicateField($subject, $field->name);
+
+      try {
+        $value =
+          $field->required
+          ? field($subject, $field->name, $field->decoder)
+          : optional_field
+              ($subject, $field->name, $field->decoder, $field->default);
+      }
+      catch (DecodeError $exn) {
+        $error = $exn;
+      }
+
+      $values[$field->name] =
+        new Value($field->name, $value ?? null, $error ?? null);
+
+      return $values;
+    }
+    , initial: [] );
 }
